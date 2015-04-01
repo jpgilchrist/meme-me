@@ -10,16 +10,28 @@ import UIKit
 
 class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
-    @IBOutlet weak var image: UIImageView!
+    var meme: Meme!
     
+    @IBOutlet weak var captureView: UIView!
+    @IBOutlet weak var imageView: UIImageView!
+    
+    @IBOutlet weak var topTextField: MemeTextField!
     @IBOutlet weak var bottomTextField: MemeTextField!
     
     @IBOutlet weak var pickImageFromCameraButton: UIBarButtonItem!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         subscribeToKeyboardNotifications()
         enablePickImageFromCamera()
+        
+        if self.imageView.image == nil {
+            self.shareAndSaveButton.enabled = false
+        }
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -50,7 +62,8 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     
     func imagePickerController(picker: UIImagePickerController!, didFinishPickingImage image: UIImage!, editingInfo: [NSObject : AnyObject]!) {
         println("didFinishPickingImage \(image) \(editingInfo)")
-        self.image.image = image
+        self.imageView.image = image
+        self.shareAndSaveButton.enabled = true
         self.dismissViewControllerAnimated(true, completion: nil)
     }
     
@@ -90,14 +103,49 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         return (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.CGRectValue().height
     }
     
-    /*
+    
+    // MARK: - Generating Memed Image
+    
+    @IBOutlet weak var shareAndSaveButton: UIBarButtonItem!
+    
+    func generateMemedImage() -> UIImage {
+        UIGraphicsBeginImageContext(self.captureView.frame.size)
+        self.captureView.drawViewHierarchyInRect(self.imageView.frame,
+            afterScreenUpdates: true)
+        let memedImage : UIImage =
+        UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return memedImage
+    }
+    
+    @IBAction func shareAndSaveMeme() {
+        let memedImage = generateMemedImage()
+        
+        self.meme = Meme(topText: self.topTextField.text, bottomText: self.bottomTextField.text, originalImage: self.imageView.image!, memedImage: memedImage)
+        
+        let activityController = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
+        activityController.completionWithItemsHandler = didFinishActivityView
+        
+        self.presentViewController(activityController, animated: true, completion: nil)
+    }
+    
+    func didFinishActivityView (activity: String!, didFinish: Bool, items: [AnyObject]!, error: NSError!) -> Void {
+        if didFinish {
+            if let delegate = UIApplication.sharedApplication().delegate as? AppDelegate {
+                delegate.memes.append(self.meme)
+            }
+        }
+    }
+
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        if let vc = segue.destinationViewController as? PreviewMemeViewController {
+            vc.meme = self.meme
+        }
     }
-    */
+
 
 }
