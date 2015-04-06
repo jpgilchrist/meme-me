@@ -9,6 +9,10 @@
 import Foundation
 import CoreData
 
+//had to use @obj(className) see details at the S.O. post
+//http://stackoverflow.com/questions/25076276/unable-to-find-specific-subclass-of-nsmanagedobject
+
+@objc(Meme)
 class Meme: NSManagedObject {
 
     @NSManaged var topText: String

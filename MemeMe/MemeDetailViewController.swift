@@ -10,26 +10,62 @@ import UIKit
 
 class MemeDetailViewController: UIViewController {
 
+    var meme: Meme!
+    
+    @IBOutlet weak var imageView: UIImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        
+        self.tabBarController?.tabBar.hidden = true
+        self.imageView.backgroundColor = UIColor.lightGrayColor()
+        self.imageView.contentMode = UIViewContentMode.ScaleAspectFit
     }
     
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+     
+        //load the memedImage on viewWillAppear so that it is updated correctly after the Meme is edited.
+        self.imageView.image = UIImage(data: meme.memedImageData)
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        //animate hiding the navigation bar so the user knows it's there
+        self.navigationController?.setNavigationBarHidden(true, animated: true)
+    }
+    
+    override func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        self.tabBarController?.tabBar.hidden = false
+    }
+    
+    @IBAction func tapShowNaivtationBar(sender: UITapGestureRecognizer) {
 
-    /*
+        //show and hide navigationbar on tap
+        if let isHidden = self.navigationController?.navigationBar.hidden {
+            self.navigationController?.setNavigationBarHidden(!isHidden, animated: true)
+        }
+    }
+
+    @IBAction func showMemeEditor(sender: UIBarButtonItem) {
+
+        //modally present the Meme Editor
+        self.performSegueWithIdentifier("ShowMemeEditorFromDetail", sender: meme)
+    }
+
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+
+        //set the meme for the Meme Editor
+        if segue.identifier == "ShowMemeEditorFromDetail" {
+            let dvc = segue.destinationViewController as MemeEditorViewController
+            dvc.meme = sender as? Meme
+        }
     }
-    */
 
 }

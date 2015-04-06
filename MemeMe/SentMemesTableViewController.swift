@@ -7,12 +7,13 @@
 //
 
 import UIKit
+import CoreData
 
 class SentMemesTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     @IBOutlet weak var tableView: UITableView!
     
-    var memes: [Meme]!
+    var memes = [Meme]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,14 +25,40 @@ class SentMemesTableViewController: UIViewController, UITableViewDataSource, UIT
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        loadMemesFromAppDelegate()
+        //we load the memes from core data on view will appear to make sure they are fresh 
+        //especially after a meme has just been created or edited.
+        loadMemesFromCoreData()
     }
     
-    func loadMemesFromAppDelegate() {
-        let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
-        self.memes = appDelegate.memes
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
         
-        println("Loaded Memes \(self.memes)")
+        //redirect to the MemeEditor because there are no memes to select
+        if self.memes.count == 0 {
+            self.performSegueWithIdentifier("ShowMemeEditorFromTable", sender: nil)
+        }
+    }
+    
+    //load the memes from CoreData and reload the table
+    func loadMemesFromCoreData() {
+        let appDelegate =
+        UIApplication.sharedApplication().delegate as AppDelegate
+        
+        let managedContext = appDelegate.managedObjectContext!
+        
+        let fetchRequest = NSFetchRequest(entityName: "Meme")
+        var error: NSError?
+        
+        let fetchedResults =
+        managedContext.executeFetchRequest(fetchRequest,
+            error: &error) as [Meme]?
+        
+        if let results = fetchedResults {
+            self.memes = results
+            self.tableView.reloadData()
+        } else {
+            println("Could not fetch \(error), \(error!.userInfo)")
+        }
     }
     
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -39,30 +66,38 @@ class SentMemesTableViewController: UIViewController, UITableViewDataSource, UIT
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        println("number of rows in section \(section) \(self.memes.count)")
         return self.memes.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        println("Cell for Row at \(indexPath.row)")
-        
+        //deque a custom SentMemeTableViewCell
         let cell = tableView.dequeueReusableCellWithIdentifier("MemeTableCell", forIndexPath: indexPath) as SentMemeTableViewCell
         
-        cell.topTextLabel.text = self.memes[indexPath.row].topText
-        cell.bottomTextLabel.text = self.memes[indexPath.row].bottomText
-        cell.memedImageView.image = self.memes[indexPath.row].memedImage
+        //setup the image for the SentMemeTableViewCell
+        cell.memedImageView.image = UIImage(data: memes[indexPath.row].memedImageData)
         
         return cell
     }
+    
+    //perfor segue and send meme when a table item is selcted
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        self.performSegueWithIdentifier("ShowMemeDetailFromTable", sender: memes[indexPath.row])
+    }
 
-    /*
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        
+        //unwrap the sender as a meme and assign it to the destinationViewController
+        if let meme = sender as? Meme {
+            if let dvc = segue.destinationViewController as? MemeEditorViewController {
+                dvc.meme = meme
+            } else if let dvc = segue.destinationViewController as?  MemeDetailViewController {
+                dvc.meme = meme
+            }
+        }
     }
-    */
+
 
 }

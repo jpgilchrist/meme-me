@@ -10,19 +10,15 @@ import UIKit
 
 class SentMemeTableViewCell: UITableViewCell {
     
-    @IBOutlet weak var topTextLabel: UILabel!
-    @IBOutlet weak var bottomTextLabel: UILabel!
+    //the image to be displayed in the cell
     @IBOutlet weak var memedImageView: UIImageView!
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
     }
 
 }
