@@ -17,7 +17,6 @@ class MemeDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.tabBarController?.tabBar.hidden = true
         self.imageView.backgroundColor = UIColor.lightGrayColor()
         self.imageView.contentMode = UIViewContentMode.ScaleAspectFit
     }
@@ -27,6 +26,9 @@ class MemeDetailViewController: UIViewController {
      
         //load the memedImage on viewWillAppear so that it is updated correctly after the Meme is edited.
         self.imageView.image = UIImage(data: meme.memedImageData)
+        
+        //hide tab bar when in Meme Detail (would be weird and confusing if it was there)
+        self.tabBarController?.tabBar.hidden = true
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -38,7 +40,8 @@ class MemeDetailViewController: UIViewController {
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
+        //puts the tab bar back before the view disappears (and more importanly before the other view appears)
         self.tabBarController?.tabBar.hidden = false
     }
     
